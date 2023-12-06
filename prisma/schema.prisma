@@ -17,6 +17,9 @@ model  Profile{
   name String
   imageUrl String @db.Text
   email String @db.Text
+  lat String @default("")
+  lng String @default("")
+  metamassAddress String @default("")
 
 servers Server[]
 members Member[] 

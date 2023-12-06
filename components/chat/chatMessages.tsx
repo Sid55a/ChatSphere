@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useRef, ElementRef } from "react";
+import { Fragment, useRef, ElementRef, useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Member, Message, Profile } from "@prisma/client";
 import { Loader2, ServerCrash } from "lucide-react";
@@ -9,6 +9,7 @@ import { useChatSocket } from "@/hooks/useChatSocket";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import ChatWelcome from "./chatWelcome";
 import ChatItem from "./chatItem";
+import MusicAi from "../aiComponents/musicAi";
 
 const DATE_FORMAT = "d MMM yyyy, HH:mm";
 
@@ -41,6 +42,8 @@ export const ChatMessages = ({
   paramValue,
   type,
 }: ChatMessagesProps) => {
+  const [chat, setChat] = useState("");
+
   const queryKey = `chat:${chatId}`;
   const addKey = `chat:${chatId}:messages`;
   const updateKey = `chat:${chatId}:messages:update`;
@@ -86,8 +89,24 @@ export const ChatMessages = ({
     );
   }
 
+  // useEffect(() => {
+  //   let final = "";
+  //   data?.pages[0]?.items
+  //     .slice(0)
+  //     .reverse()
+  //     .map((msg: any) => {
+  //       let cMsg = `${msg.member.profile.name} says ${msg.content} then `;
+  //       final += cMsg;
+  //       setChat(final);
+  //     });
+  // }, []);
+
+  ///////////////////////////
+
+  
   return (
     <div ref={chatRef} className="flex-1 flex flex-col py-4 overflow-y-auto">
+      
       {!hasNextPage && <div className="flex-1" />}
       {!hasNextPage && <ChatWelcome type={type} name={name} />}
       {hasNextPage && (
@@ -104,23 +123,26 @@ export const ChatMessages = ({
           )}
         </div>
       )}
+
       <div className="flex flex-col-reverse mt-auto">
         {data?.pages?.map((group, i) => (
           <Fragment key={i}>
-            {group.items.map((message: MessageWithMemberWithProfile) => (
-              <ChatItem
-                key={message.id}
-                id={message.id}
-                currentMember={member}
-                member={message.member}
-                content={message.content}
-                fileUrl={message.fileUrl}
-                deleted={message.deleted}
-                timestamp={format(new Date(message.createdAt), DATE_FORMAT)}
-                isUpdated={message.updatedAt !== message.createdAt}
-                socketUrl={socketUrl}
-                socketQuery={socketQuery}
-              />
+            {group?.items.map((message: MessageWithMemberWithProfile) => (
+              <>
+                <ChatItem
+                  key={message.id}
+                  id={message.id}
+                  currentMember={member}
+                  member={message.member}
+                  content={message.content}
+                  fileUrl={message.fileUrl}
+                  deleted={message.deleted}
+                  timestamp={format(new Date(message.createdAt), DATE_FORMAT)}
+                  isUpdated={message.updatedAt !== message.createdAt}
+                  socketUrl={socketUrl}
+                  socketQuery={socketQuery}
+                />
+              </>
             ))}
           </Fragment>
         ))}

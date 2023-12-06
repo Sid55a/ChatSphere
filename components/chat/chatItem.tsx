@@ -3,7 +3,15 @@
 import { Member, MemberRole, Profile } from "@prisma/client";
 import { UserAvatar } from "../user-avatar";
 import ActionTooltip from "../action-tooltip";
-import { Edit, FileIcon, ShieldAlert, ShieldCheck, Trash } from "lucide-react";
+import {
+  Edit,
+  FileIcon,
+  Loader2,
+  Mic,
+  ShieldAlert,
+  ShieldCheck,
+  Trash,
+} from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -17,6 +25,7 @@ import { Button } from "../ui/button";
 import axios from "axios";
 import { useModal } from "@/hooks/use-model-store";
 import { useParams, useRouter } from "next/navigation";
+import { setTimeout } from "timers";
 
 interface ChatItemProps {
   id: string;
@@ -53,6 +62,8 @@ function ChatItem({
   socketUrl,
   socketQuery,
 }: ChatItemProps) {
+  const { onOpen, setAiVoiceLink, aiVoiceLink } = useModal();
+
   const router = useRouter();
   const params = useParams();
 
@@ -67,7 +78,6 @@ function ChatItem({
   const isImage = !isPdf && fileType;
 
   const [isEditing, setIsEditing] = useState(false);
-  const { onOpen } = useModal();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -112,6 +122,38 @@ function ChatItem({
       return;
     }
     router.push(`/servers/${params?.serverId}/conversation/${member.id}`);
+  };
+  const [loading, setLoading] = useState(false);
+  const handleVoice = async () => {
+    try {
+      setLoading(true);
+
+      const encodedParams = new URLSearchParams();
+      encodedParams.set("voice_code", "en-US-1");
+      encodedParams.set("text", content);
+      encodedParams.set("speed", "1.00");
+      encodedParams.set("pitch", "1.00");
+      encodedParams.set("output_type", "audio_url");
+
+      const response = await axios.request({
+        method: "POST",
+        url: "https://cloudlabs-text-to-speech.p.rapidapi.com/synthesize",
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          "X-RapidAPI-Key":
+            "9fec0e4972msh21218c90552c659p1e4ff6jsnb84108350498",
+          "X-RapidAPI-Host": "cloudlabs-text-to-speech.p.rapidapi.com",
+        },
+        data: encodedParams,
+      });
+      console.log(response.data.result.audio_url);
+      setAiVoiceLink(response?.data?.result?.audio_url);
+      onOpen("aiTextToVoice")
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="relative group flex items-center hover:bg-black/5 p-4 transition w-full">
@@ -214,29 +256,42 @@ function ChatItem({
           )}
         </div>
       </div>
-      {canDeleteMessage && (
-        <div className="hidden group-hover:flex items-center gap-x-2 absolute p-1 -top-2 right-5 bg-white dark:bg-zinc-800 border rounded-sm">
-          {canEditMessage && (
-            <ActionTooltip lable="Edit">
-              <Edit
-                onClick={() => setIsEditing(true)}
+      <div className="flex">
+        {canDeleteMessage && (
+          <div className="hidden group-hover:flex items-center gap-x-2 absolute p-1 -top-2 right-5 bg-white dark:bg-zinc-800 border rounded-sm">
+            {canEditMessage && (
+              <ActionTooltip lable="Edit">
+                <Edit
+                  onClick={() => setIsEditing(true)}
+                  className="cursor-pointer ml-auto w-4 h-4 text-zinc-50 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
+                />
+              </ActionTooltip>
+            )}
+
+            <ActionTooltip lable="Delete">
+              <Trash
+                onClick={() =>
+                  onOpen("deleteMessage", {
+                    apiUrl: `${socketUrl}/${id}`,
+                    query: socketQuery,
+                  })
+                }
                 className="cursor-pointer ml-auto w-4 h-4 text-zinc-50 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
               />
             </ActionTooltip>
-          )}
-          <ActionTooltip lable="Delete">
-            <Trash
-              onClick={() =>
-                onOpen("deleteMessage", {
-                  apiUrl: `${socketUrl}/${id}`,
-                  query: socketQuery,
-                })
-              }
-              className="cursor-pointer ml-auto w-4 h-4 text-zinc-50 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
-            />
-          </ActionTooltip>
-        </div>
-      )}
+            <ActionTooltip lable="Listen">
+              {loading ? (
+                <Loader2 className="h-4 w-4 text-zinc-500 animate-spin my-4" />
+              ) : (
+                <Mic
+                  onClick={handleVoice}
+                  className="cursor-pointer ml-auto w-4 h-4 text-zinc-50 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
+                />
+              )}
+            </ActionTooltip>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

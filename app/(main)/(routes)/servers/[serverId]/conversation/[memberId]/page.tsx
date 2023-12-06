@@ -54,6 +54,7 @@ const MemberIdPage = async ({ params, searchParams }: MemberIdPageProps) => {
   const otherMember =
     memberOne.profileId === profile.id ? memberTwo : memberOne;
 
+  console.log();
   return (
     <div className="bg-white dark:bg-[#313338] flex flex-col h-screen">
       <ChatHeader
@@ -61,6 +62,8 @@ const MemberIdPage = async ({ params, searchParams }: MemberIdPageProps) => {
         name={otherMember.profile.name}
         serverId={params.serverId}
         type="conversation"
+        conversationId={conversation.id}
+        currentMemberName={currentMember.profile.name}
       />
       {searchParams.video && (
         <MediaRoom chatId={conversation.id} video={true} audio={true} />

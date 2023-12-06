@@ -6,18 +6,38 @@ import { ServerHeader } from "./server-header";
 import { ScrollArea } from "../ui/scroll-area";
 import { ServerSearch } from "./serverSearch";
 import { ChannelType, MemberRole } from "@prisma/client";
-import { Hash, Mic, ShieldAlert, ShieldCheck, Video } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Hash,
+  Mic,
+  ShieldAlert,
+  ShieldCheck,
+  Video,
+} from "lucide-react";
 import { Avatar } from "../ui/avatar";
 import { Separator } from "../ui/separator";
 import { ServerSection } from "./serverSection";
 import { ServerChannel } from "./server-channel";
 import ServerMember from "./serverMember";
+import { classNames } from "uploadthing/client";
+import { MusicPlayer } from "../aiComponents/musicPlayer";
+import { useModal } from "@/hooks/use-model-store";
+import { Button } from "../ui/button";
+import EntertainmentZone from "../aiComponents/entertainment";
+import axios from "axios";
+
+
+
+
 
 export const ServerSidebar = async ({ serverId }: { serverId: string }) => {
   const profile = await currentProfile();
   if (!profile) {
     return redirect("/");
   }
+
+
 
   const server = await db.server.findUnique({
     where: {
@@ -62,10 +82,12 @@ export const ServerSidebar = async ({ serverId }: { serverId: string }) => {
   const role = server?.members.find(
     (member) => member.profileId === profile.id
   )?.role;
+  // const { musicUri, link } = useModal();
 
   return (
     <div className="flex flex-col h-full text-primary w-full dark:bg-[#2B2D31] bg-[#F2F3F5]">
       <ServerHeader server={server} role={role} />
+
       <ScrollArea className="flex-1 px-3 ">
         <div className="mt-2">
           <ServerSearch
@@ -108,6 +130,10 @@ export const ServerSidebar = async ({ serverId }: { serverId: string }) => {
               },
             ]}
           />
+        </div>
+
+        <div>
+          <EntertainmentZone  />
         </div>
         <Separator className="bg-zinc-200 dark:bg-zinc-700 rounded-md my-2" />
         {!!textChannels?.length && (

@@ -23,6 +23,9 @@ export const initialProfile = async () => {
       name: `${user.firstName} ${user.lastName}`,
       imageUrl: user.imageUrl,
       email: user.emailAddresses[0].emailAddress,
+      lat: "23.2156",
+      lng: "72.6369",
+      metamassAddress: "",
     },
   });
 
