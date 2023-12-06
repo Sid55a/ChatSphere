@@ -23,3 +23,6 @@ Websocket fallback: Polling with alerts
 ORM using Prisma
 MySQL database using Planetscale
 Authentication with Clerk
+# Chat
+# Chat
+# Chat
